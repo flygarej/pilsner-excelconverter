@@ -11,6 +11,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -28,7 +29,7 @@ public class GreetingResource {
 
     @Inject
     POIService poiservice;
-    
+
 //    @POST
 //    @Consumes({MediaType.MULTIPART_FORM_DATA})
 //    @Produces(MediaType.TEXT_PLAIN)
@@ -52,7 +53,6 @@ public class GreetingResource {
 //        return Response.ok("Ok").build();
 //    
 //    }    
-
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces(MediaType.TEXT_PLAIN)
@@ -61,37 +61,37 @@ public class GreetingResource {
         String body = "Failed to convert excel to text";
         String fileName = "";
         Boolean noJudgement = true;
-        Boolean withDate=false;
+        Boolean withDate = false;
 
         Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
-        
+
         // Get slim
         List<InputPart> inputParts = uploadForm.get("checkboxvalue");
-        if (inputParts!=null) {
+        if (inputParts != null) {
             for (InputPart ip : inputParts) {
                 try {
-                    if (ip.getBodyAsString()!=null) {
-                        noJudgement=false;
+                    if (ip.getBodyAsString() != null) {
+                        noJudgement = false;
                     }
                 } catch (IOException ex) {
                     java.util.logging.Logger.getLogger(GreetingResource.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
-        
+
         inputParts = uploadForm.get("withdate");
-        if (inputParts!=null) {
+        if (inputParts != null) {
             for (InputPart ip : inputParts) {
                 try {
-                    if (ip.getBodyAsString()!=null) {
-                        withDate=true;
+                    if (ip.getBodyAsString() != null) {
+                        withDate = true;
                     }
                 } catch (IOException ex) {
                     java.util.logging.Logger.getLogger(GreetingResource.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
-        
+
         inputParts = uploadForm.get("file");
 
         InputStream inputStream = null;
@@ -105,18 +105,19 @@ public class GreetingResource {
                     return Response.status(200)
                             .entity("Filen måste ha filändelsen .xlsx").type(MediaType.TEXT_PLAIN + "; charset=UTF-8").build();
                 }
+                log.info("Got request to convert excel file " + fileName);
                 StringBuilder sb = new StringBuilder();
                 sb.append("Extracting records from file " + fileName + "\n\n");
                 //convert the uploaded file to inputstream
                 inputStream = inputPart.getBody(InputStream.class, null);
-                
+
                 poiservice.parse(inputStream, sb, noJudgement, withDate);
-                
+
                 return Response.status(Response.Status.OK).entity(sb.toString()).type(MediaType.TEXT_PLAIN + "; charset=UTF-8").build();
 
-                
             } catch (IOException e) {
                 e.printStackTrace();
+                log.info("Failed conversion");
             } finally {
                 if (inputStream != null) {
                     try {
