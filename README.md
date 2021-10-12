@@ -1,4 +1,4 @@
-# Pilsner-excelconverter
+# Pilsner-excelconverter 1.0.2
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
