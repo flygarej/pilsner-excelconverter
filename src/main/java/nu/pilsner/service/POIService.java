@@ -26,6 +26,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 
 /**
  *
@@ -33,6 +34,8 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
  */
 @ApplicationScoped
 public class POIService {
+    
+    public static final Logger LOG = Logger.getLogger(POIService.class.getSimpleName());
 
     @Inject
     ConfigEntity config;
@@ -45,6 +48,7 @@ public class POIService {
             workbook = new XSSFWorkbook(is);
             int activeSheets = workbook.getNumberOfSheets();
             sb.append("File contains " + activeSheets + " sheets\n\n");
+            LOG.info("File contains " + activeSheets + " sheets");
             for (int currentSheet = 0; currentSheet < activeSheets; currentSheet++) {
                 Sheet sheet = workbook.getSheetAt(currentSheet);
                 String sheetName = sheet.getSheetName();
@@ -100,7 +104,7 @@ public class POIService {
             }
             currentRowIndex++;
         }
-
+        LOG.info("Headers " + ((headersFound)?"":"not") + "found");
     }
 
     public void processDataRow(Row theRow, Boolean isSlim, StringBuilder sb, Boolean withDate) {
@@ -245,7 +249,8 @@ public class POIService {
     public Boolean analyzeHeaders(Row currentRow) {
         Map<String, Integer> res = new HashMap<>();
         // Require at least Rubrik, Varunr and Namn in row to consider it a header row.
-        if (detectHeader(currentRow, config.getDefinedHeaderValue(0), config.getDefinedHeaderValue(1), config.getDefinedHeaderValue(2))) {
+        if (detectHeader(currentRow, config.getDefinedHeaderValue(0), config.getDefinedHeaderValue(1), config.getDefinedHeaderValue(2)) ||
+                detectHeader(currentRow, config.getDefinedHeaderValue(0), config.getDefinedHeaderValue(1), config.getDefinedHeaderValue(3))) {
             // Iterate over row, storing index of column matching header list in map
             // Iterate and collect headers
             Iterator cellIter = currentRow.cellIterator();
@@ -260,6 +265,8 @@ public class POIService {
                 }
             }
             return true;
+        } else {
+            LOG.info("Could not match Rubrik, Varunr and Name/Produktnamn in row " + currentRow.getRowNum());
         }
         return false;
     }
