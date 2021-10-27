@@ -19,6 +19,7 @@ import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import nu.pilsner.service.ConfigEntity.HEADERNAME;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -34,7 +35,7 @@ import org.jboss.logging.Logger;
  */
 @ApplicationScoped
 public class POIService {
-    
+
     public static final Logger LOG = Logger.getLogger(POIService.class.getSimpleName());
 
     @Inject
@@ -73,6 +74,9 @@ public class POIService {
         Iterator<Row> rowIterator = sheet.rowIterator();
         Integer emptyRows = 0;
         Integer currentRowIndex = 0;
+        // Maps to hold header metadata while processing sheet
+        Map<Integer, HEADERNAME> forwardMap = new HashMap<>();
+        Map<HEADERNAME, Integer> reverseMap = new HashMap<>();
         while (rowIterator.hasNext() && currentRowIndex < 400) {
             //System.out.println("Row  " + currentRowIndex);
             Row currentRow = rowIterator.next();
@@ -86,128 +90,78 @@ public class POIService {
             }
             if (emptyRows > config.maxEmptyRows) {
                 // Read enough empty rows, terminate
+                LOG.info("Ran out of rows while searching for data...");
                 return;
             }
             if (!emptyRow) {
                 if (currentRow != null) {
                     if (!headersFound) {
                         try {
-                            headersFound = analyzeHeaders(currentRow);
+                            headersFound = analyzeHeaders(currentRow, forwardMap, reverseMap);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
                     } else {
                         // Process row....
-                        processDataRow(currentRow, isSlim, sb, withDate);
+                        if (headersFound) {
+                            processDataRow(currentRow, isSlim, sb, withDate, forwardMap, reverseMap);
+                        } else {
+                            LOG.info("Found data row while searching for header row, ignoring!");
+                        }
                     }
                 }
             }
             currentRowIndex++;
         }
-        LOG.info("Headers " + ((headersFound)?"":"not") + "found");
+        LOG.info("Headers " + ((headersFound) ? "" : "not") + "found");
     }
 
-    public void processDataRow(Row theRow, Boolean isSlim, StringBuilder sb, Boolean withDate) {
+    public void processDataRow(Row theRow, Boolean isSlim, StringBuilder sb, Boolean withDate, Map<Integer, HEADERNAME> forwardMap, Map<HEADERNAME, Integer> reverseMap) {
         Iterator cellIter = theRow.cellIterator();
         Boolean first = true;
-        Map<String, String> header2valueMap = new HashMap<>();
+        Map<HEADERNAME, String> header2valueMap = new HashMap<>();
         while (cellIter.hasNext()) {
             Cell theCell = (Cell) cellIter.next();
             Integer cellIndex = theCell.getColumnIndex();
-            String header = config.getHeader(cellIndex);
-            String value = getCellValueAsString(theCell, header);
-            header2valueMap.put(header, value);
+            HEADERNAME header = forwardMap.get(cellIndex);
+            if (header != null) {
+                String value = getCellValueAsString(theCell, header);
+                header2valueMap.put(header, value);
+            } else {
+                LOG.info("Got null header for row " + theRow.getRowNum() + "and column " + theCell.getColumnIndex() );
+            }
         }
-        processValues(header2valueMap, isSlim, sb, withDate);
+        processValues(header2valueMap, isSlim, sb, withDate, forwardMap, reverseMap);
     }
 
-    public String fuzzyValueOf(String header) {
-        if (header == null) {
-            return "";
-        }
-        // TODO: create map from header to type...
-        String nh = header.toUpperCase();
-        if (nh.startsWith("VARUNR")) {
-            return "VARUNR";
-        }
-        if (nh.startsWith("RUBRIK")) {
-            return "RUBRIK";
-        }
-        if (nh.startsWith("PRODUKTNAMN")) {
-            return "PRODUKTNAMN";
-        }
-        if (nh.startsWith("NAMN")) {
-            return "PRODUKTNAMN";
-        }
-        if (nh.startsWith("ÅRGÅNG")) {
-            return "ÅRGÅNG";
-        }
-        if (nh.startsWith("SORTIMENT")) {
-            return "SORTIMENT";
-        }
-        if (nh.startsWith("VOLYM")) {
-            return "VOLYM";
-        }
-        if (nh.startsWith("PRIS")) {
-            return "PRIS";
-        }
-        if (nh.startsWith("LITERPRIS")) {
-            return "LITERPRIS";
-        }
-        if (nh.startsWith("ALKOHOLHALT")) {
-            return "ALKOHOLHALT";
-        }
-        if (nh.startsWith("PRODUCENT")) {
-            return "PRODUCENT";
-        }
-        if (nh.startsWith("LANSERINGSDATUM")) {
-            return "LANSERINGSDATUM";
-        }
-        if (nh.startsWith("LAND")) {
-            return "LAND";
-        }
-        if (nh.startsWith("OMRÅDE")) {
-            return "OMRÅDE";
-        }
-        if (nh.startsWith("PRESENTATION")) {
-            return "PRESENTATION";
-        }
-        if (nh.startsWith("INKÖPT ANTAL")) {
-            return "ANTAL";
-        }
-        if (nh.startsWith("LEVERANTÖR")) {
-            return "LEVERANTÖR";
-        }
-        if (nh.startsWith("ÖVRIGT")) {
-            return "ÖVRIGT";
-        }
-        return nh;
-    }
-
-    public void processValues(Map<String, String> h2vMap, Boolean isSlim, StringBuilder sb, Boolean withDate) {
+    public void processValues(Map<HEADERNAME, String> h2vMap, Boolean isSlim, StringBuilder sb, Boolean withDate, Map<Integer, HEADERNAME> forwardMap, Map<HEADERNAME, Integer> reverseMap) {
         // Build record and append it to sb
         String tmp;
         sb.append("<strong>");
-        sb.append(h2vMap.get("VARUNR")).append(" ");
-        sb.append(h2vMap.get("PRODUKTNAMN")).append("</strong>").append("\n");
+        sb.append(h2vMap.get(HEADERNAME.VARUNR)).append(" ");
+        sb.append(h2vMap.get(HEADERNAME.PRODUKTNAMN)).append("</strong>").append("\n");
         if (withDate) {
-            sb.append("Lanseringsdatum: ").append(h2vMap.get("LANSERINGSDATUM")).append("\n");
+            sb.append("Lanseringsdatum: ").append(h2vMap.get(HEADERNAME.LANSERINGSDATUM)).append("\n");
         }
-        sb.append("Rubrik: ").append(h2vMap.get("RUBRIK")).append("\n");
-        sb.append("Volym: ").append(h2vMap.get("VOLYM")).append(" ml ");
-        sb.append("Pris: ").append(h2vMap.get("PRIS")).append(" Sek Literpris: ").append(h2vMap.get("LITERPRIS")).append(" Sek/l ");
-        sb.append("Alkoholhalt: ").append(h2vMap.get("ALKOHOLHALT")).append("%\n");
-        sb.append("Producent: ").append(h2vMap.get("PRODUCENT")).append(" Sortiment: ").append(h2vMap.get("SORTIMENT")).append("\n");
-        sb.append("Land: ").append(h2vMap.get("LAND"));
-        tmp = h2vMap.get("OMRÅDE");
+        sb.append("Rubrik: ").append(h2vMap.get(HEADERNAME.RUBRIK)).append("\n");
+        sb.append("Volym: ").append(h2vMap.get(HEADERNAME.VOLYM)).append(" ml ");
+        sb.append("Pris: ").append(h2vMap.get(HEADERNAME.PRIS)).append(" Sek Literpris: ").append(h2vMap.get(HEADERNAME.LITERPRIS)).append(" Sek/l ");
+        sb.append("Alkoholhalt: ").append(h2vMap.get(HEADERNAME.ALKOHOLHALT)).append("%\n");
+        sb.append("Producent: ").append(h2vMap.get(HEADERNAME.PRODUCENT)).append(" Sortiment: ").append(h2vMap.get(HEADERNAME.SORTIMENT)).append("\n");
+        sb.append("Land: ").append(h2vMap.get(HEADERNAME.LAND));
+        tmp = h2vMap.get(HEADERNAME.OMRÅDE);
         if (tmp != null && !tmp.isBlank()) {
             sb.append(" Område: ").append(tmp);
         }
-        String antal = h2vMap.get("ANTAL");
+        String antal = h2vMap.get(HEADERNAME.ANTAL);
         if (antal != null && !antal.isBlank()) {
-            sb.append(" Inköpt antal: ").append(h2vMap.get("ANTAL"));
+            sb.append(" Inköpt antal: ").append(antal);
         }
-        sb.append(" Leverantör: ").append(h2vMap.get("LEVERANTÖR")).append("\n");
+        sb.append(" Leverantör: ").append(h2vMap.get(HEADERNAME.LEVERANTÖR)).append("\n");
+        String förpackning = h2vMap.get(HEADERNAME.FÖRPACKNING);
+        if (förpackning != null && !förpackning.isEmpty()) {
+            sb.append("Förpackning: ").append(förpackning).append("\n");
+        }
         if (!isSlim) {
             sb.append("Färg: \n");
             sb.append("Doft: \n");
@@ -246,11 +200,10 @@ public class POIService {
         return false;
     }
 
-    public Boolean analyzeHeaders(Row currentRow) {
+    public Boolean analyzeHeaders(Row currentRow, Map<Integer, HEADERNAME> headerMapForward, Map<HEADERNAME, Integer> headerMapReverse) {
         Map<String, Integer> res = new HashMap<>();
         // Require at least Rubrik, Varunr and Namn in row to consider it a header row.
-        if (detectHeader(currentRow, config.getDefinedHeaderValue(0), config.getDefinedHeaderValue(1), config.getDefinedHeaderValue(2)) ||
-                detectHeader(currentRow, config.getDefinedHeaderValue(0), config.getDefinedHeaderValue(1), config.getDefinedHeaderValue(3))) {
+        if (detectHeader(currentRow, HEADERNAME.RUBRIK, HEADERNAME.VARUNR, HEADERNAME.PRODUKTNAMN)) {
             // Iterate over row, storing index of column matching header list in map
             // Iterate and collect headers
             Iterator cellIter = currentRow.cellIterator();
@@ -259,7 +212,16 @@ public class POIService {
                 Integer index = currentCell.getColumnIndex();
                 try {
                     String cellValue = currentCell.getStringCellValue();
-                    config.addHeader(index, fuzzyValueOf(cellValue));
+                    HEADERNAME hname = HEADERNAME.getValue(cellValue); // Make fuzzy
+                    if (hname != HEADERNAME.UNKNOWN) {
+                        // Save in maps
+                        headerMapForward.put(index, hname);
+                        headerMapReverse.put(hname, index);
+                    } else {
+                        if (!cellValue.isEmpty()) {
+                            LOG.info("Unknown header value ignored: " + cellValue);
+                        }
+                    }
                 } catch (Exception ex) {
                     System.out.println("Could not read header value as string for cell ");
                 }
@@ -271,7 +233,7 @@ public class POIService {
         return false;
     }
 
-    public String getCellValueAsString(Cell theCell, String header) {
+    public String getCellValueAsString(Cell theCell, HEADERNAME header) {
         // Header provides info on value...
         CellType cellType = theCell.getCellType();
         switch (cellType) {
@@ -284,13 +246,13 @@ public class POIService {
             case FORMULA:
                 return theCell.getCellFormula();
             case NUMERIC:
-                if (header != null && header.contains("DATUM")) {
+                if (header != null && header.name().toUpperCase().contains("DATUM")) {
                     return formatDateToString(theCell.getDateCellValue());
                 }
                 switch (header) {
-                    case "VARUNR":
-                    case "VOLYM":
-                    case "ANTAL":
+                    case VARUNR:
+                    case VOLYM:
+                    case ANTAL:
                         // Return an integer value
                         Double d = theCell.getNumericCellValue();
                         return String.valueOf(d.intValue());
@@ -308,13 +270,37 @@ public class POIService {
         return format.format(date);
     }
 
-    public Boolean detectHeader(Row row, String header1, String header2, String header3) {
+    public Integer findHeaderColumn(Row row, String header) {
+        if (row == null || header == null) {
+            LOG.info("Got null row or header, returning null!");
+            return null;
+        }
+        HEADERNAME hname = HEADERNAME.getValue(header);
+        if (hname == HEADERNAME.UNKNOWN) {
+            return null;
+        }
+        Iterator iter = row.cellIterator();
+        while (iter.hasNext()) {
+            // Rteurn true if named header found
+            Cell cell = (Cell) iter.next();
+            CellType cellType = cell.getCellType();
+            // We only care about string cells
+            if (cellType.equals(CellType.STRING)) {
+                if (header.equals(cell.getStringCellValue())) {
+                    return cell.getColumnIndex();
+                }
+            }
+        }
+        return null;
+    }
+
+    public Boolean detectHeader(Row row, HEADERNAME header1, HEADERNAME header2, HEADERNAME header3) {
         Boolean ok1 = false;
         Boolean ok2 = false;
         Boolean ok3 = false;
 
         if (header1 == null || header2 == null || header3 == null) {
-            System.out.println("Got null strings for headers");
+            System.out.println("Got null values for headers");
             return false;
         }
 
@@ -324,13 +310,13 @@ public class POIService {
             CellType cellType = cell.getCellType();
             if (cellType.equals(CellType.STRING)) {
                 String cellContent = cell.getStringCellValue();
-                if (header1.equals(cellContent)) {
+                if (header1.checkValue(cellContent)) {
                     ok1 = true;
                 }
-                if (header2.equals(cellContent)) {
+                if (header2.checkValue(cellContent)) {
                     ok2 = true;
                 }
-                if (header3.equals(cellContent)) {
+                if (header3.checkValue(cellContent)) {
                     ok3 = true;
                 }
             }
