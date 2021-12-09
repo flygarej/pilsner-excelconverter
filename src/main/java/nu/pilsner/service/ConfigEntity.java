@@ -22,52 +22,102 @@ public class ConfigEntity {
     @ConfigProperty(name = "excel.maxemptyrows", defaultValue = "6")
     public Integer maxEmptyRows;
 
-    public Map<Integer, String> headers = new HashMap<>();
+    // define headers we're interested and that we've seen before
+    // TODO: Make into map from KEYWORD to list of allowed values,
+    // then PRODUKTNAMN->{"Namn", "Produktnamn"} could be used to allow
+    // alternatives.
+    // We use this information to find RUBRIK, VARUNR and PRODUKTNAMN values on same row,
+    // if we do, we store the column numbers of the headers so we know which column
+    // contains what value for the data rows.
+    public enum HEADERNAME {
+        RUBRIK("Rubrik"),
+        VARUNR("Varunr"),
+        PRODUKTNAMN(new LinkedList<String>() {
+            {
+                add("Produktnamn");
+                add("Namn");
+            }
+        }),
+        ÅRGÅNG("Årgång"),
+        SORTIMENT("Sortiment"),
+        VOLYM("Volym"),
+        PRIS("Pris"),
+        LITERPRIS("Literpris"),
+        ALKOHOLHALT("Alkoholhalt"),
+        PRODUCENT("Producent"),
+        LANSERINGSDATUM("Lanseringsdatum"),
+        LAND("Land"),
+        MODUL("Modul"),
+        OMRÅDE("Område"),
+        INKÖPT_ANTAL("Inköpt antal"),
+        LEVERANTÖR("Leverantör"),
+        ÖVRIGT("Övrigt"),
+        REGION("Region"),
+        PRESENTATION("Presentation"),
+        SÄSONG("Säsong"),
+        DEPÅ(new LinkedList<String>() {
+            {
+                add("Depå");
+                add("TSLS: Depå");
+            }
+        }),
+        FÄRG("Färg"),
+        DOFT("Doft"),
+        SMAK("Smak"),
+        ANTAL("Antal"),
+        OMDÖME("Omdöme"),
+        BETYG("Betyg"),
+        ORDERNR(new LinkedList<String>() {
+            {
+                add("Order nr");
+                add("Ord nr");
+            }
+        }),
+        FÖRPACKNING("Förpackning"),
+        UNKNOWN("unknown");
 
-    public void clearHeaders() {
-        headers.clear();
-    }
+        private List<String> columnName = new LinkedList<String>();
 
-    public void addHeader(Integer cellIndex, String headerName) {
-        headers.put(cellIndex, headerName);
-    }
-
-    public String getHeader(Integer cellIndex) {
-        return headers.get(cellIndex);
-    }
-
-    // define headers
-    private List<String> headerValues = new LinkedList<String>() {
-        {
-            add("Rubrik");
-            add("Varunr");
-            add("Produktnamn"); // Same as "Namn".
-            add("Namn");
-            add("Årgång");
-            add("Sortiment");
-            add("Volym");
-            add("Pris");
-            add("Literpris");
-            add("Alkoholhalt");
-            add("Producent");
-            add("Lanseringsdatum");
-            add("Land");
-            add("Modul");
-            add("Område");
-            add("Inköpt antal");
-            add("Leverantör");
-            add("Övrigt");
-            add("Depå");
-            add("Färg");
-            add("Doft");
-            add("Smak");
-            add("Omdöme");
-            add("Betyg");
-            add("Ord Nr");
+        HEADERNAME(String name) {
+            this.columnName.add(name);
         }
+
+        HEADERNAME(List<String> names) {
+            for (String name : names) {
+                columnName.add(name);
+            }
+        }
+
+        static public List<String> getHeaders() {
+            List<String> retval = new LinkedList<>();
+            for (HEADERNAME hname : HEADERNAME.values()) {
+                for (String name : hname.columnName) {
+                    retval.add(name);
+                }
+            }
+            return retval;
+        }
+
+        static public HEADERNAME getValue(String name) {
+            for (HEADERNAME hname : HEADERNAME.values()) {
+                for (String cname : hname.columnName) {
+                    // Look for "starts with" in column name
+                    if (name.startsWith(cname)) {
+                        return hname;
+                    }
+                }
+            }
+            return UNKNOWN;
+        }
+
+        public Boolean checkValue(String name) {
+            return columnName.contains(name);
+        }
+
+        public String getPrimaryValue() {
+            return columnName.get(0);
+        }
+
     };
 
-    public String getDefinedHeaderValue(Integer index) {
-        return headerValues.get(index);
-    }
 }
