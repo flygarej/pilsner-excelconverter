@@ -67,7 +67,7 @@ public class ConfigEntity {
         ANTAL("Antal"),
         OMDÖME("Omdöme"),
         BETYG("Betyg"),
-        ORDNR(new LinkedList<String>() {
+        ORDERNR(new LinkedList<String>() {
             {
                 add("Order nr");
                 add("Ord nr");
