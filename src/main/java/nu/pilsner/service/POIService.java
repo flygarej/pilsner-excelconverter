@@ -78,8 +78,9 @@ public class POIService {
         Map<Integer, HEADERNAME> forwardMap = new HashMap<>();
         Map<HEADERNAME, Integer> reverseMap = new HashMap<>();
         while (rowIterator.hasNext() && currentRowIndex < 400) {
-            //System.out.println("Row  " + currentRowIndex);
+
             Row currentRow = rowIterator.next();
+            LOG.debug("Current row: " + currentRow.getRowNum());
             Boolean emptyRow = isEmptyRow(currentRow);
             // Print some information about row
             //System.out.println("Empty row: " + emptyRow);
@@ -128,7 +129,7 @@ public class POIService {
                 String value = getCellValueAsString(theCell, header);
                 header2valueMap.put(header, value);
             } else {
-                LOG.info("Got null header for row " + theRow.getRowNum() + "and column " + theCell.getColumnIndex() );
+                LOG.info("Got null header for row " + theRow.getRowNum() + " and column " + theCell.getColumnIndex() );
             }
         }
         processValues(header2valueMap, isSlim, sb, withDate, forwardMap, reverseMap);
@@ -181,6 +182,10 @@ public class POIService {
         int emptyCells = 0;
         for (int currentCellNumber = 0; currentCellNumber < 10; currentCellNumber++) {
             Cell theCell = thisRow.getCell(currentCellNumber);
+            if (theCell==null) {
+                emptyCells++;
+                continue; // next loop
+            }
             CellType cellType = theCell.getCellType();
             switch (cellType) {
                 case BLANK:
