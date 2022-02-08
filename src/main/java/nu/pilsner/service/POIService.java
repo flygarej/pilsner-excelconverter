@@ -154,7 +154,7 @@ public class POIService {
         if (tmp != null && !tmp.isBlank()) {
             sb.append(" Område: ").append(tmp);
         }
-        String antal = h2vMap.get(HEADERNAME.ANTAL);
+        String antal = h2vMap.get(HEADERNAME.INKÖPT_ANTAL);
         if (antal != null && !antal.isBlank()) {
             sb.append(" Inköpt antal: ").append(antal);
         }
@@ -257,7 +257,7 @@ public class POIService {
                 switch (header) {
                     case VARUNR:
                     case VOLYM:
-                    case ANTAL:
+                    case INKÖPT_ANTAL:
                         // Return an integer value
                         Double d = theCell.getNumericCellValue();
                         return String.valueOf(d.intValue());

@@ -49,7 +49,12 @@ public class ConfigEntity {
         LAND("Land"),
         MODUL("Modul"),
         OMRÅDE("Område"),
-        INKÖPT_ANTAL("Inköpt antal"),
+        INKÖPT_ANTAL(new LinkedList<String>() {
+            {
+                add("Inköpt antal");
+                add("Antal");
+            }
+        }),
         LEVERANTÖR("Leverantör"),
         ÖVRIGT("Övrigt"),
         REGION("Region"),
@@ -64,7 +69,7 @@ public class ConfigEntity {
         FÄRG("Färg"),
         DOFT("Doft"),
         SMAK("Smak"),
-        ANTAL("Antal"),
+        //ANTAL("Antal"),
         OMDÖME("Omdöme"),
         BETYG("Betyg"),
         ORDERNR(new LinkedList<String>() {
