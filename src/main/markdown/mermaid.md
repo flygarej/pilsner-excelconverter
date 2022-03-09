@@ -6,6 +6,7 @@ Two samples:
 ```mermaid
   graph TD;
       A-->B;
+      B-->B;
       A-->C;
       B-->D;
       C-->D;
