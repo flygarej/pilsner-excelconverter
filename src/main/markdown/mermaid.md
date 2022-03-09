@@ -2,7 +2,7 @@
 
 Testing if mermaid works as stated in github markdown:
 
-```mermaid
+```mermaid 
 flowchart TD
     A[Deploy to production] -->{Is it Friday?};
     B --> Yes --> C[Do not deplot!];
