@@ -23,4 +23,8 @@ Two samples:
     D---->E[Enjoy your weekend!];
 ```
 
-
+```mermaid
+  sequenceDiagram
+    Client->>Server:ConnectRequest
+    Server->>Client:ConnectResponse
+```
