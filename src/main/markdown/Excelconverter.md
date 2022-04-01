@@ -11,7 +11,8 @@ The converter does not provide any access control, you will have to do that by p
 
 The converter can be run as-is, or as a docker or k8s container.
 
-After building the project with *./mvnw clean package* you can start it with *java -jar target/quarkus-app/quarkus-run.jar*
+After building the project with *./mvnw clean package* (or in case of Windows, mvnw.bat clean package)
+you can start it with *java -jar target/quarkus-app/quarkus-run.jar*
 
 the service can then be accessed by browsing to:
 
