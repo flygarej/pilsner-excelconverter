@@ -8,10 +8,10 @@ It seems scaling is only possible if using img html tag, markdown will always be
 
 Below is a scaled image
 
-<img src="markdown/images/drawing.svg" width=50 height=50>
+<img src="images/drawing.svg" width=50 height=50>
 
 ### Regular image
 
 Below is a regular image, no scaling
 
-![Sample image](markdown/images/drawing.svg)
+![Sample image](images/drawing.svg)
