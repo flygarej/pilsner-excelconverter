@@ -1,6 +1,6 @@
 package nu.pilsner;
 
-import java.io.File;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -11,19 +11,23 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import nu.pilsner.entities.FormData;
 import nu.pilsner.service.POIService;
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 
 @Path("/pilsner/excel")
 public class GreetingResource {
+    
+    private final MeterRegistry registry;
+
+    GreetingResource(MeterRegistry registry) {
+        this.registry = registry;
+        
+    }
 
     private static final Logger log = Logger.getLogger(GreetingResource.class);
 
@@ -112,7 +116,7 @@ public class GreetingResource {
                 inputStream = inputPart.getBody(InputStream.class, null);
 
                 poiservice.parse(inputStream, sb, noJudgement, withDate);
-
+                registry.counter("pilsnerconverter.files.uploaded").increment();
                 return Response.status(Response.Status.OK).entity(sb.toString()).type(MediaType.TEXT_PLAIN + "; charset=UTF-8").build();
 
             } catch (IOException e) {
