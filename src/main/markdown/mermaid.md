@@ -2,7 +2,7 @@
 
 Testing if mermaid works as stated in github markdown:
 
-Two samples:
+Some samples:
 ```mermaid
   graph TD;
       A-->B;
