@@ -168,7 +168,7 @@ public class POIService {
             sb.append("Doft: \n");
             sb.append("Smak: \n");
             sb.append("Omdöme: \n");
-            sb.append("Betyg (1-6); \n");
+            sb.append("Betyg (1-6):  \n");
         }
         sb.append("\n");
     }
