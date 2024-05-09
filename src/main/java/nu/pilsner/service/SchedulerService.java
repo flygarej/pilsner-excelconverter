@@ -6,7 +6,7 @@
 package nu.pilsner.service;
 
 import io.quarkus.scheduler.Scheduled;
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.jboss.logging.Logger;
 
 /**
