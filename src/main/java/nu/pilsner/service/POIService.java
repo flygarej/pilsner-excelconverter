@@ -139,27 +139,27 @@ public class POIService {
         // Build record and append it to sb
         String tmp;
         sb.append("<strong>");
-        sb.append(h2vMap.get(HEADERNAME.VARUNR)).append(" ");
-        sb.append(h2vMap.get(HEADERNAME.PRODUKTNAMN)).append("</strong>").append("\n");
+        sb.append(h2vMap.get(HEADERNAME.ITEMID)).append(" ");
+        sb.append(h2vMap.get(HEADERNAME.PRODUCT_NAME)).append("</strong>").append("\n");
         if (withDate) {
-            sb.append("Lanseringsdatum: ").append(h2vMap.get(HEADERNAME.LANSERINGSDATUM)).append("\n");
+            sb.append("Lanseringsdatum: ").append(h2vMap.get(HEADERNAME.RELEASE_DATE)).append("\n");
         }
-        sb.append("Rubrik: ").append(h2vMap.get(HEADERNAME.RUBRIK)).append("\n");
-        sb.append("Volym: ").append(h2vMap.get(HEADERNAME.VOLYM)).append(" ml ");
-        sb.append("Pris: ").append(h2vMap.get(HEADERNAME.PRIS)).append(" Sek Literpris: ").append(h2vMap.get(HEADERNAME.LITERPRIS)).append(" Sek/l ");
-        sb.append("Alkoholhalt: ").append(h2vMap.get(HEADERNAME.ALKOHOLHALT)).append("%\n");
-        sb.append("Producent: ").append(h2vMap.get(HEADERNAME.PRODUCENT)).append(" Sortiment: ").append(h2vMap.get(HEADERNAME.SORTIMENT)).append("\n");
+        sb.append("Rubrik: ").append(h2vMap.get(HEADERNAME.HEADLINE)).append("\n");
+        sb.append("Volym: ").append(h2vMap.get(HEADERNAME.VOLUME)).append(" ml ");
+        sb.append("Pris: ").append(h2vMap.get(HEADERNAME.PRICE)).append(" Sek Literpris: ").append(h2vMap.get(HEADERNAME.PRICE_PER_LITER)).append(" Sek/l ");
+        sb.append("Alkoholhalt: ").append(h2vMap.get(HEADERNAME.ALCOHOL_PERCENTAGE)).append("%\n");
+        sb.append("Producent: ").append(h2vMap.get(HEADERNAME.PRODUCER)).append(" Sortiment: ").append(h2vMap.get(HEADERNAME.SEGMENT)).append("\n");
         sb.append("Land: ").append(h2vMap.get(HEADERNAME.LAND));
-        tmp = h2vMap.get(HEADERNAME.OMRÅDE);
+        tmp = h2vMap.get(HEADERNAME.AREA);
         if (tmp != null && !tmp.isBlank()) {
             sb.append(" Område: ").append(tmp);
         }
-        String antal = h2vMap.get(HEADERNAME.INKÖPT_ANTAL);
+        String antal = h2vMap.get(HEADERNAME.ITEMS_BOUGHT);
         if (antal != null && !antal.isBlank()) {
             sb.append(" Inköpt antal: ").append(antal);
         }
-        sb.append(" Leverantör: ").append(h2vMap.get(HEADERNAME.LEVERANTÖR)).append("\n");
-        String förpackning = h2vMap.get(HEADERNAME.FÖRPACKNING);
+        sb.append(" Leverantör: ").append(h2vMap.get(HEADERNAME.DISTRIBUTOR)).append("\n");
+        String förpackning = h2vMap.get(HEADERNAME.PACKAGING);
         if (förpackning != null && !förpackning.isEmpty()) {
             sb.append("Förpackning: ").append(förpackning).append("\n");
         }
@@ -208,7 +208,7 @@ public class POIService {
     public Boolean analyzeHeaders(Row currentRow, Map<Integer, HEADERNAME> headerMapForward, Map<HEADERNAME, Integer> headerMapReverse) {
         Map<String, Integer> res = new HashMap<>();
         // Require at least Rubrik, Varunr and Namn in row to consider it a header row.
-        if (detectHeader(currentRow, HEADERNAME.RUBRIK, HEADERNAME.VARUNR, HEADERNAME.PRODUKTNAMN)) {
+        if (detectHeader(currentRow, HEADERNAME.HEADLINE, HEADERNAME.ITEMID, HEADERNAME.PRODUCT_NAME)) {
             // Iterate over row, storing index of column matching header list in map
             // Iterate and collect headers
             Iterator cellIter = currentRow.cellIterator();
@@ -255,9 +255,9 @@ public class POIService {
                     return formatDateToString(theCell.getDateCellValue());
                 }
                 switch (header) {
-                    case VARUNR:
-                    case VOLYM:
-                    case INKÖPT_ANTAL:
+                    case ITEMID:
+                    case VOLUME:
+                    case ITEMS_BOUGHT:
                         // Return an integer value
                         Double d = theCell.getNumericCellValue();
                         return String.valueOf(d.intValue());

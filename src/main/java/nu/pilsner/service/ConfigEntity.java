@@ -24,61 +24,61 @@ public class ConfigEntity {
 
     // define headers we're interested and that we've seen before
     // TODO: Make into map from KEYWORD to list of allowed values,
-    // then PRODUKTNAMN->{"Namn", "Produktnamn"} could be used to allow
+    // then PRODUCT_NAME->{"Namn", "Produktnamn"} could be used to allow
     // alternatives.
-    // We use this information to find RUBRIK, VARUNR and PRODUKTNAMN values on same row,
+    // We use this information to find HEADLINE, ITEMID and PRODUCT_NAME values on same row,
     // if we do, we store the column numbers of the headers so we know which column
     // contains what value for the data rows.
     public enum HEADERNAME {
-        RUBRIK("Rubrik"),
-        VARUNR("Varunr"),
-        PRODUKTNAMN(new LinkedList<String>() {
+        HEADLINE("Rubrik"),
+        ITEMID("Varunr"),
+        PRODUCT_NAME(new LinkedList<String>() {
             {
                 add("Produktnamn");
                 add("Namn");
             }
         }),
-        ÅRGÅNG("Årgång"),
-        SORTIMENT("Sortiment"),
-        VOLYM("Volym"),
-        PRIS("Pris"),
-        LITERPRIS("Literpris"),
-        ALKOHOLHALT("Alkoholhalt"),
-        PRODUCENT("Producent"),
-        LANSERINGSDATUM("Lanseringsdatum"),
+        YEAR("Årgång"),
+        SEGMENT("Sortiment"),
+        VOLUME("Volym"),
+        PRICE("Pris"),
+        PRICE_PER_LITER("Literpris"),
+        ALCOHOL_PERCENTAGE("Alkoholhalt"),
+        PRODUCER("Producent"),
+        RELEASE_DATE("Lanseringsdatum"),
         LAND("Land"),
-        MODUL("Modul"),
-        OMRÅDE("Område"),
-        INKÖPT_ANTAL(new LinkedList<String>() {
+        MODULE("Modul"),
+        AREA("Område"),
+        ITEMS_BOUGHT(new LinkedList<String>() {
             {
                 add("Inköpt antal");
                 add("Antal");
             }
         }),
-        LEVERANTÖR("Leverantör"),
-        ÖVRIGT("Övrigt"),
+        DISTRIBUTOR("Leverantör"),
+        OTHER("Övrigt"),
         REGION("Region"),
         PRESENTATION("Presentation"),
-        SÄSONG("Säsong"),
-        DEPÅ(new LinkedList<String>() {
+        SEASON("Säsong"),
+        DEPOT(new LinkedList<String>() {
             {
                 add("Depå");
                 add("TSLS: Depå");
             }
         }),
-        FÄRG("Färg"),
-        DOFT("Doft"),
-        SMAK("Smak"),
+        COLOR("Färg"),
+        SMELL("Doft"),
+        TASTE("Smak"),
         //ANTAL("Antal"),
-        OMDÖME("Omdöme"),
-        BETYG("Betyg"),
+        STATEMENT("Omdöme"),
+        GRADE("Betyg"),
         ORDERNR(new LinkedList<String>() {
             {
                 add("Order nr");
                 add("Ord nr");
             }
         }),
-        FÖRPACKNING("Förpackning"),
+        PACKAGING("Förpackning"),
         UNKNOWN("unknown");
 
         private List<String> columnName = new LinkedList<String>();
