@@ -20,6 +20,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import nu.pilsner.service.ConfigEntity.HEADERNAME;
+import org.apache.poi.ooxml.POIXMLException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -65,6 +66,10 @@ public class POIService {
                 fetchSheetData(sheet, sb, isSlim, withDate); // Find headers and data
             }
         } catch (IOException ex) {
+            sb.append("IOException while handling spreadsheet");
+        } catch (POIXMLException pex) {
+            sb.append("POI XML Exception, file might be using newer XML format than POI library can handle");
+            
         }
     }
 
