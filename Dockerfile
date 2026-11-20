@@ -14,7 +14,7 @@
 # docker run -i --rm -p 8080:8080 jflygare/pilsnerk8s:1.2.4-SNAPSHOT
 #
 
-FROM gcr.io/distroless/java21-debian13
+FROM gcr.io/distroless/java24-debian13
 
 WORKDIR /app
 
